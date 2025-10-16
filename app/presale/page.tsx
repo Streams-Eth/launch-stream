@@ -1,6 +1,6 @@
 "use client"
-
-import { useState, useEffect } from "react"
+export const dynamic = "force-dynamic"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,14 +11,14 @@ import { Separator } from "@/components/ui/separator"
 import { Clock, Target, Zap, Shield, CreditCard, Wallet, Home } from "lucide-react"
 import { useWeb3 } from "@/hooks/use-web3"
 import Link from "next/link"
-import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js"
+import nextDynamic from "next/dynamic"
+
+const PresalePayPal = nextDynamic(() => import("./PresalePayPal"), { ssr: false })
 
 export default function PresalePage() {
   const { isConnected, address, connectWallet } = useWeb3()
   const [ethAmount, setEthAmount] = useState("")
   const [lstAmount, setLstAmount] = useState("")
-  const [paymentMethod, setPaymentMethod] = useState<"crypto" | "paypal">("crypto")
-  const [{ isPending }] = usePayPalScriptReducer()
 
   const presaleData = {
     totalSupply: 400000000, // 400M LST for presale
@@ -35,60 +35,15 @@ export default function PresalePage() {
   const progress = (presaleData.sold / presaleData.totalSupply) * 100
   const remaining = presaleData.totalSupply - presaleData.sold
 
-  useEffect(() => {
-    if (ethAmount && !isNaN(Number.parseFloat(ethAmount))) {
-      let lstTokens: number
-
-      if (paymentMethod === "crypto") {
-        lstTokens = Number.parseFloat(ethAmount) / presaleData.price
-      } else {
-        lstTokens = Number.parseFloat(ethAmount) / presaleData.lstUsdPrice
-      }
-
+  const handleEthAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setEthAmount(value)
+    if (value && !isNaN(Number.parseFloat(value))) {
+      const lstTokens = Number.parseFloat(value) / presaleData.price
       setLstAmount(lstTokens.toLocaleString())
     } else {
       setLstAmount("")
     }
-  }, [ethAmount, paymentMethod])
-
-  const createPayPalOrder = (data: any, actions: any) => {
-    const usdAmount = Number.parseFloat(ethAmount)
-
-    console.log("[v0] Creating PayPal order for $", usdAmount)
-
-    return actions.order.create({
-      purchase_units: [
-        {
-          amount: {
-            value: usdAmount.toFixed(2),
-            currency_code: "USD",
-          },
-          description: `${lstAmount} LST Tokens - Launch Stream Presale`,
-        },
-      ],
-    })
-  }
-
-  const onPayPalApprove = async (data: any, actions: any) => {
-    console.log("[v0] PayPal payment approved:", data)
-
-    try {
-      const details = await actions.order.capture()
-      console.log("[v0] PayPal payment captured:", details)
-
-      alert(`Payment successful! You will receive ${lstAmount} LST tokens. Transaction ID: ${details.id}`)
-
-      setEthAmount("")
-      setLstAmount("")
-    } catch (error) {
-      console.error("[v0] PayPal payment error:", error)
-      alert("Payment failed. Please try again.")
-    }
-  }
-
-  const onPayPalError = (error: any) => {
-    console.error("[v0] PayPal error:", error)
-    alert("PayPal payment failed. Please try again.")
   }
 
   const handleCryptoPayment = () => {
@@ -96,7 +51,6 @@ export default function PresalePage() {
       connectWallet()
       return
     }
-    console.log("[v0] Processing crypto payment for", lstAmount, "LST tokens")
     alert(`Purchasing ${lstAmount} LST tokens for ${ethAmount} ETH`)
   }
 
@@ -109,7 +63,6 @@ export default function PresalePage() {
             Home
           </Link>
         </div>
-
         {/* Header */}
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4">
@@ -120,11 +73,9 @@ export default function PresalePage() {
             <span className="text-blue-400"> Presale</span>
           </h1>
           <p className="text-xl text-slate-300 max-w-3xl mx-auto mb-8">
-            Join the future of decentralized launchpad services. Get LST tokens at presale price with exclusive
-            benefits.
+            Join the future of decentralized launchpad services. Get LST tokens at presale price with exclusive benefits.
           </p>
         </div>
-
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Presale Stats */}
           <div className="lg:col-span-2 space-y-6">
@@ -150,7 +101,6 @@ export default function PresalePage() {
                     <span>{remaining.toLocaleString()} LST Remaining</span>
                   </div>
                 </div>
-
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-slate-900/50 rounded-lg">
                     <div className="text-2xl font-bold text-blue-400">0.0001</div>
@@ -171,7 +121,6 @@ export default function PresalePage() {
                 </div>
               </CardContent>
             </Card>
-
             {/* Benefits Card */}
             <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader>
@@ -232,7 +181,6 @@ export default function PresalePage() {
               </CardContent>
             </Card>
           </div>
-
           {/* Purchase Card */}
           <div className="space-y-6">
             <Card className="bg-slate-800/50 border-slate-700">
@@ -243,120 +191,62 @@ export default function PresalePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Payment Method Selection */}
-                <div className="space-y-3">
-                  <Label className="text-white">Payment Method</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant={paymentMethod === "crypto" ? "default" : "outline"}
-                      onClick={() => setPaymentMethod("crypto")}
-                      className="w-full"
-                    >
-                      <Wallet className="w-4 h-4 mr-2" />
-                      Crypto
-                    </Button>
-                    <Button
-                      variant={paymentMethod === "paypal" ? "default" : "outline"}
-                      onClick={() => setPaymentMethod("paypal")}
-                      className="w-full"
-                    >
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      PayPal
-                    </Button>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Amount Input */}
+                {/* Amount Input for Crypto */}
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="eth-amount" className="text-white">
-                      {paymentMethod === "crypto" ? "ETH Amount" : "USD Amount"}
+                      ETH Amount
                     </Label>
                     <Input
                       id="eth-amount"
                       type="number"
-                      placeholder={paymentMethod === "crypto" ? "0.1" : "100"}
+                      placeholder="0.1"
                       value={ethAmount}
-                      onChange={(e) => setEthAmount(e.target.value)}
+                      onChange={handleEthAmountChange}
                       className="bg-slate-900/50 border-slate-600 text-white"
                     />
                     <p className="text-xs text-slate-400">
-                      Minimum: {paymentMethod === "crypto" ? "0.1 ETH" : "$4.50"} • Maximum:{" "}
-                      {paymentMethod === "crypto" ? "10 ETH" : "$450"}
+                      Minimum: 0.1 ETH • Maximum: 10 ETH
                     </p>
                   </div>
-
                   <div className="space-y-2">
                     <Label className="text-white">LST Tokens You'll Receive</Label>
                     <div className="p-3 bg-slate-900/50 rounded-lg border border-slate-600">
                       <div className="text-2xl font-bold text-blue-400">{lstAmount || "0"} LST</div>
-                      <div className="text-xs text-slate-400">@ ${presaleData.lstUsdPrice} per LST</div>
+                      <div className="text-xs text-slate-400">@ {presaleData.price} ETH per LST</div>
                     </div>
                   </div>
                 </div>
-
                 <Separator />
-
-                {/* Purchase Button */}
+                {/* Purchase Button for Crypto */}
                 <div className="space-y-4">
-                  {paymentMethod === "crypto" ? (
-                    <Button
-                      onClick={handleCryptoPayment}
-                      className="w-full bg-blue-600 hover:bg-blue-700"
-                      size="lg"
-                      disabled={!ethAmount || Number.parseFloat(ethAmount) < presaleData.minBuy}
-                    >
-                      {!isConnected ? "Connect Wallet" : "Purchase with Crypto"}
-                    </Button>
-                  ) : (
-                    <div className="space-y-3">
-                      {isPending ? (
-                        <div className="w-full p-4 bg-slate-700 rounded-lg text-center">
-                          <div className="text-slate-400">Loading PayPal...</div>
-                        </div>
-                      ) : (
-                        <PayPalButtons
-                          style={{
-                            layout: "vertical",
-                            color: "blue",
-                            shape: "rect",
-                            label: "pay",
-                          }}
-                          createOrder={createPayPalOrder}
-                          onApprove={onPayPalApprove}
-                          onError={onPayPalError}
-                          disabled={!ethAmount || Number.parseFloat(ethAmount) < presaleData.minBuy}
-                        />
-                      )}
-                      <div className="text-xs text-slate-400 text-center">
-                        USD Equivalent: $
-                        {ethAmount ? (Number.parseFloat(ethAmount) * presaleData.ethToUsd).toFixed(2) : "0.00"}
-                      </div>
-                    </div>
-                  )}
-
+                  <Button
+                    onClick={handleCryptoPayment}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    size="lg"
+                    disabled={!ethAmount || Number.parseFloat(ethAmount) < presaleData.minBuy}
+                  >
+                    {!isConnected ? "Connect Wallet" : "Purchase with Crypto"}
+                  </Button>
                   {isConnected && (
                     <div className="text-xs text-slate-400 text-center">
                       Connected: {address?.slice(0, 6)}...{address?.slice(-4)}
                     </div>
                   )}
                 </div>
-
                 {/* Security Notice */}
                 <div className="p-3 bg-slate-900/50 rounded-lg border border-slate-600">
                   <div className="flex items-start gap-2">
                     <Shield className="w-4 h-4 text-green-400 mt-0.5" />
                     <div className="text-xs text-slate-400">
-                      <strong className="text-green-400">Secure Transaction:</strong> All payments are processed through
-                      audited smart contracts. Your tokens will be available immediately after purchase.
+                      <strong className="text-green-400">Secure Transaction:</strong> All payments are processed through audited smart contracts. Your tokens will be available immediately after purchase.
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
+            {/* PayPal Purchase Card (client-only) */}
+            <PresalePayPal presaleData={presaleData} />
             {/* Timer Card */}
             <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader>
