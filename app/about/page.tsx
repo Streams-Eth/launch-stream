@@ -40,7 +40,7 @@ export default function AboutPage() {
           <h1 className="text-5xl font-black text-balance mb-6">Empowering the Future of DeFi</h1>
 
           <p className="text-xl text-muted-foreground mb-8 text-pretty">
-            Launch Stream is the leading decentralized platform for token creation, presales, liquidity locking, and
+            Launch Stream's decentralized platform for token creation, presales, liquidity locking, and
             airdrops. We're building the infrastructure that powers the next generation of DeFi projects.
           </p>
         </div>
@@ -52,7 +52,7 @@ export default function AboutPage() {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-black mb-4">Our Mission</h2>
             <p className="text-xl text-muted-foreground">
-              To democratize access to DeFi tools and make token launches accessible to everyone
+              To create a user-friendly DeFi tools and make it easy for anyone to launch their own tokens.
             </p>
           </div>
 
@@ -60,8 +60,8 @@ export default function AboutPage() {
             <div>
               <h3 className="text-2xl font-bold mb-4">Building the DeFi Infrastructure</h3>
               <p className="text-muted-foreground mb-6">
-                Since our inception, we've been committed to creating secure, user-friendly tools that enable anyone to
-                participate in the DeFi ecosystem. Our platform has facilitated over $100M in token launches and serves
+                Since our inception, we've been committed to creating user-friendly tools that enable anyone to
+                participate in the DeFi ecosystem. Launch Stream's platform will facilitate secure token launches and serves
                 thousands of projects worldwide.
               </p>
               <p className="text-muted-foreground">
@@ -72,15 +72,15 @@ export default function AboutPage() {
             <div className="bg-muted/30 rounded-2xl p-8">
               <div className="grid grid-cols-2 gap-6 text-center">
                 <div>
-                  <div className="text-3xl font-black text-primary mb-2">$100M+</div>
+                  <div className="text-3xl font-black text-primary mb-2">$0</div>
                   <div className="text-sm text-muted-foreground">Total Volume</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-black text-primary mb-2">5,000+</div>
+                  <div className="text-3xl font-black text-primary mb-2">0</div>
                   <div className="text-sm text-muted-foreground">Projects Launched</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-black text-primary mb-2">50,000+</div>
+                  <div className="text-3xl font-black text-primary mb-2">2</div>
                   <div className="text-sm text-muted-foreground">Active Users</div>
                 </div>
                 <div>

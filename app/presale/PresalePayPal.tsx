@@ -1,5 +1,5 @@
 "use client"
-import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js"
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,7 +10,29 @@ export default function PresalePayPal({ presaleData }: { presaleData: any }) {
   const [ethAmount, setEthAmount] = useState("")
   const [lstAmount, setLstAmount] = useState("")
   const [paymentMethod, setPaymentMethod] = useState<"crypto" | "paypal">("crypto")
-  const [{ isPending }] = usePayPalScriptReducer()
+
+  function PayPalButtonsWrapper() {
+    // Hook inside the provider-rendered child
+    const [{ isPending }] = require('@paypal/react-paypal-js').usePayPalScriptReducer()
+
+    return (
+      <>
+        {isPending ? (
+          <div className="w-full p-4 bg-slate-700 rounded-lg text-center">
+            <div className="text-slate-400">Loading PayPal...</div>
+          </div>
+        ) : (
+          <PayPalButtons
+            style={{ layout: "vertical", color: "blue", shape: "rect", label: "pay" }}
+            createOrder={createPayPalOrder}
+            onApprove={onPayPalApprove}
+            onError={onPayPalError}
+            disabled={!ethAmount || Number.parseFloat(ethAmount) < presaleData.minBuy}
+          />
+        )}
+      </>
+    )
+  }
 
   useEffect(() => {
     if (ethAmount && !isNaN(Number.parseFloat(ethAmount))) {
@@ -115,19 +137,7 @@ export default function PresalePayPal({ presaleData }: { presaleData: any }) {
         <div className="space-y-4">
           {paymentMethod === "paypal" && (
             <div className="space-y-3">
-              {isPending ? (
-                <div className="w-full p-4 bg-slate-700 rounded-lg text-center">
-                  <div className="text-slate-400">Loading PayPal...</div>
-                </div>
-              ) : (
-                <PayPalButtons
-                  style={{ layout: "vertical", color: "blue", shape: "rect", label: "pay" }}
-                  createOrder={createPayPalOrder}
-                  onApprove={onPayPalApprove}
-                  onError={onPayPalError}
-                  disabled={!ethAmount || Number.parseFloat(ethAmount) < presaleData.minBuy}
-                />
-              )}
+              <PayPalButtonsWrapper />
               <div className="text-xs text-slate-400 text-center">
                 USD Equivalent: $
                 {ethAmount ? (Number.parseFloat(ethAmount) * presaleData.ethToUsd).toFixed(2) : "0.00"}
